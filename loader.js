@@ -9,13 +9,14 @@
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
-  var LOGO = '<svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#2B593F"/><rect x="7" y="8" width="18" height="16" rx="3" fill="none" stroke="#DBEDDB" stroke-width="2"/><path d="M7 13h18" stroke="#DBEDDB" stroke-width="2"/><circle cx="16" cy="18.5" r="3" fill="#DBEDDB"/></svg>';
+  var LOGO = '<svg viewBox="-9 -8 128 138" aria-hidden="true"><g transform="rotate(-11 58 64)"><rect x="9" y="9" width="100" height="113" rx="1.6" fill="#000"/></g>' +
+    '<g transform="rotate(-8.5 50 56.5)"><rect width="100" height="113" rx="1.6" fill="#fff"/><rect x="5.5" y="5.5" width="89" height="84" fill="#131313"/></g></svg>';
 
   function gate(html) {
     var app = $('app'); if (app) app.hidden = true;
     var g = $('gate');
     g.hidden = false;
-    g.innerHTML = '<div class="gate-box"><div class="gate-logo">' + LOGO + '</div>' + html + '</div>';
+    g.innerHTML = '<div class="gate-box"><div class="gate-logo">' + LOGO + '</div>' + html + '</div><div class="gate-edge" aria-hidden="true"></div>';
     return g;
   }
   function button(g, onClick) { g.querySelector('#gate-go').addEventListener('click', onClick); }
@@ -23,13 +24,13 @@
 
   var pages = {
     notSetUp: function () {
-      gate('<h1>Coredex is not set up yet</h1><p>It names no project to connect to. The setup guide says what goes there.</p>');
+      gate('<h1>Coredex is not set up yet.</h1><p>It names no project to connect to. The setup guide says what goes there.</p>');
     },
     libraryMissing: function () {
-      gate('<h1>Coredex could not start</h1><p>Its sign-in library did not load. Reload the page; if it keeps happening, the site needs republishing.</p>');
+      gate('<h1>Coredex could not start.</h1><p>Its sign-in library did not load. Reload the page; if it keeps happening, the site needs republishing.</p>');
     },
     signIn: function (start) {
-      var g = gate('<h1>Coredex</h1><p>The team\'s shared work, live.</p>' +
+      var g = gate('<h1>Coredex.</h1><p>The team\'s shared work, live.</p>' +
         '<button class="btn primary" id="gate-go">Sign in with Google</button>' +
         '<p class="gate-note">Only people an owner has added can open Coredex. Use the Google account of the address you were added with.</p>' +
         '<p class="gate-err" id="gate-err" role="alert" hidden></p>');
@@ -42,24 +43,24 @@
       });
     },
     noAccess: function (email, signOut) {
-      var g = gate('<h1>No access yet</h1><p><b>' + esc(email || 'This Google account') + '</b> has no access to Coredex. ' +
+      var g = gate('<h1>No access yet.</h1><p><b>' + esc(email || 'This Google account') + '</b> has no access to Coredex. ' +
         'An owner adds your address; then reload this page.</p>' +
         '<p class="gate-note">Were you added with another address? Sign out, then sign in with that Google account.</p>' +
         '<button class="btn" id="gate-go">Sign out</button>');
       button(g, signOut);
     },
     unreachable: function () {
-      var g = gate('<h1>Coredex cannot reach its data</h1><p>The connection failed, or Coredex is asleep after a week in ' +
+      var g = gate('<h1>Coredex cannot reach its data.</h1><p>The connection failed, or Coredex is asleep after a week in ' +
         'which nobody used it. An owner wakes it, and nothing is lost. Then try again.</p><button class="btn" id="gate-go">Try again</button>');
       button(g, reload);
     },
     notPublished: function (signOut) {
-      var g = gate('<h1>Coredex is not published yet</h1><p>You are signed in, but there is no version of Coredex to open yet. ' +
+      var g = gate('<h1>Coredex is not published yet.</h1><p>You are signed in, but there is no version of Coredex to open yet. ' +
         'An owner publishes it; the setup guide says how.</p><button class="btn" id="gate-go">Sign out</button>');
       button(g, signOut);
     },
     failed: function (message) {
-      var g = gate('<h1>Coredex stopped</h1><p>' + esc(message || 'Something went wrong.') + '</p><button class="btn" id="gate-go">Reload</button>');
+      var g = gate('<h1>Coredex stopped.</h1><p>' + esc(message || 'Something went wrong.') + '</p><button class="btn" id="gate-go">Reload</button>');
       button(g, reload);
     }
   };

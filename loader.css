@@ -1,33 +1,56 @@
-/* The front door's own look, before the app has loaded. */
+/* The front door's own look, before the app has loaded: Core Memory's ink and paper, and Nunito, which the
+   app uses too. The strokes come from strokes.css. */
+
+@font-face { font-family: "Nunito"; src: url("fonts/Nunito-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Nunito"; src: url("fonts/Nunito-Bold.ttf") format("truetype"); font-weight: 700; font-style: normal; font-display: swap; }
+
 :root {
-  color-scheme: light;
-  --bg: #FFFFFF; --ink: #37352F; --ink-2: rgba(55, 53, 47, .85); --muted: rgba(55, 53, 47, .65);
-  --line-2: rgba(55, 53, 47, .16); --hover: rgba(55, 53, 47, .06); --blue: #2383E2; --blue-ink: #FFFFFF; --danger: #EB5757;
-  --sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, Arial, sans-serif;
-  --mono: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", Courier, monospace;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --bg: #191919; --ink: rgba(255, 255, 255, .81); --ink-2: rgba(255, 255, 255, .72); --muted: rgba(255, 255, 255, .46);
-    --line-2: rgba(255, 255, 255, .16); --hover: rgba(255, 255, 255, .055); --danger: #FF7369;
-  }
+  color-scheme: dark;
+  --bg: #131313; --ink: #FFFFFF; --ink-2: #DADADA; --muted: #8F8F8F; --hover: rgba(255, 255, 255, .06);
+  --danger: #FF6A61;
+  --sans: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --mono: var(--sans);
 }
 *, *::before, *::after { box-sizing: border-box; }
 html, body { height: 100%; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 400 14px/1.5 var(--sans); -webkit-font-smoothing: antialiased; }
 [hidden] { display: none !important; }
+:focus-visible { outline: 2px dashed var(--ink); outline-offset: 3px; }
 
-.gate { position: fixed; inset: 0; overflow-y: auto; display: grid; place-items: center; padding: 32px 16px; background: var(--bg); }
+.gate { position: fixed; inset: 0; overflow-y: auto; display: grid; place-items: center; padding: 32px 16px 110px; background: var(--bg); }
 .gate-loading { color: var(--muted); }
-.gate-box { width: min(440px, 100%); display: grid; gap: 14px; }
-.gate-logo svg { width: 44px; height: 44px; display: block; }
-.gate-box h1 { margin: 0; font: 700 30px/1.2 var(--sans); letter-spacing: -.01em; color: var(--ink); }
-.gate-box p { margin: 0; color: var(--ink-2); }
-.gate-note { font-size: 13px; color: var(--muted) !important; }
-.gate-err { color: var(--danger) !important; font-size: 13.5px; }
-.gate-box .btn { justify-self: start; display: inline-flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 6px;
-  border: 1px solid var(--line-2); background: none; color: var(--ink); font: 500 15px/1 var(--sans); cursor: pointer; }
-.gate-box .btn:hover { background: var(--hover); }
-.gate-box .btn.primary { background: var(--blue); border-color: var(--blue); color: var(--blue-ink); }
+.gate-box { width: min(460px, 100%); display: grid; justify-items: center; gap: 16px; text-align: center; }
+.gate-logo svg { width: 86px; height: 92px; display: block; overflow: visible; }
+.gate-box h1 {
+  position: relative; margin: 10px 0 0; padding-bottom: 16px; color: var(--ink); text-wrap: balance;
+  font: 700 clamp(32px, 8vw, 54px)/1.05 var(--sans); -webkit-text-stroke: .025em currentColor;
+}
+.gate-box h1::after {
+  content: ""; position: absolute; left: 50%; bottom: 0; width: min(200px, 70%); height: 15px; transform: translateX(-46%); background: currentColor;
+  -webkit-mask: var(--scribble-underline) center / 100% 100% no-repeat; mask: var(--scribble-underline) center / 100% 100% no-repeat;
+}
+.gate-box p { margin: 0; color: var(--ink-2); font-size: 16px; }
+.gate-box p b { color: var(--ink); }
+.gate-box .gate-note { max-width: 38ch; color: var(--muted); font-size: 13.5px; }
+.gate-box .gate-err { color: var(--danger); font-size: 14px; }
+.gate-box .btn {
+  display: inline-flex; align-items: center; height: 38px; padding: 0 18px; cursor: pointer;
+  border: 1.6px solid var(--ink-2); border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  background: none; color: var(--ink); font: 700 14px/1 var(--sans);
+}
+.gate-box .btn:hover { background: var(--hover); border-color: var(--ink); }
+.gate-box .btn.primary {
+  height: 48px; padding: 0 26px; margin: 12px 0 6px; border: 0; border-radius: 2px 7px 3px 8px / 7px 2px 8px 3px;
+  background: #FFFFFF; color: #131313; font-size: 15px; letter-spacing: .05em; text-transform: uppercase;
+  box-shadow: 5px 6px 0 #000; transform: rotate(-1deg);
+}
+.gate-box .btn.primary::after { content: "."; }
+.gate-box .btn.primary:hover { transform: rotate(0deg) translateY(-1px); }
 .gate-box .btn:disabled { opacity: .55; cursor: default; }
+
+/* The brushed white band along the bottom, as on the website. */
+.gate-edge { position: fixed; left: 0; right: 0; bottom: 0; height: 56px; background: #FFFFFF; pointer-events: none; }
+.gate-edge::before {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: 26px; background: #FFFFFF;
+  -webkit-mask: var(--stroke-edge) center / 100% 100% no-repeat; mask: var(--stroke-edge) center / 100% 100% no-repeat;
+}
