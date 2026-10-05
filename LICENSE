@@ -1,0 +1,5 @@
+Copyright (c) 2026 Core Memory Entertainment. All rights reserved.
+
+No part of this repository may be copied, changed or distributed without written permission from Core
+Memory Entertainment. The file vendor/supabase.js is Supabase's @supabase/supabase-js and stays under
+its own MIT licence.
