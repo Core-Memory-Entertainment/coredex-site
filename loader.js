@@ -45,7 +45,9 @@
     noAccess: function (email, signOut) {
       var g = gate('<h1>No access yet.</h1><p><b>' + esc(email || 'This Google account') + '</b> has no access to Coredex. ' +
         'An owner adds your address; then reload this page.</p>' +
-        '<p class="gate-note">Were you added with another address? Sign out, then sign in with that Google account.</p>' +
+        '<p class="gate-note">Were you added with another address? Sign out, then sign in with that Google account. If this page ' +
+        'comes back with this address, the other one is a second address on this Google account: ask whoever invited you to add ' +
+        'this one instead.</p>' +
         '<button class="btn" id="gate-go">Sign out</button>');
       button(g, signOut);
     },
