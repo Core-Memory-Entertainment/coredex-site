@@ -87,15 +87,16 @@
       ? fetch('../app/manifest.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }, function () { return null; })
       : Promise.resolve(null);
     return local.then(function (manifest) {
+      /* a lazy file is published with the app but fetched only when the app asks for it */
       if (manifest && Array.isArray(manifest.files)) {
-        return Promise.all(manifest.files.map(function (f) {
+        return Promise.all(manifest.files.filter(function (f) { return f.kind !== 'lazy'; }).map(function (f) {
           return fetch('../app/' + f.path, { cache: 'no-store' }).then(function (r) {
             if (!r.ok) throw new Error(f.path + ' did not load');
             return r.text();
           }).then(function (text) { return { path: f.path, kind: f.kind, content: text }; });
         })).then(function (files) { return { files: files, version: 'local' }; });
       }
-      return sb.from('app_files').select('path,kind,position,content,version').order('position').then(function (res) {
+      return sb.from('app_files').select('path,kind,position,content,version').in('kind', ['script', 'style']).order('position').then(function (res) {
         if (res.error) throw res.error;
         var files = res.data || [];
         return { files: files, version: files.length ? files[0].version : null };
