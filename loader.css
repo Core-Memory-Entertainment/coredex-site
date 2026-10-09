@@ -47,6 +47,7 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 400 14px/1.5 v
 .gate-box .btn.primary::after { content: "."; }
 .gate-box .btn.primary:hover { transform: rotate(0deg) translateY(-1px); }
 .gate-box .btn:disabled { opacity: .55; cursor: default; }
+.gate-box a.btn { text-decoration: none; }
 
 /* The brushed white band along the bottom, as on the website. */
 .gate-edge { position: fixed; left: 0; right: 0; bottom: 0; height: 56px; background: #FFFFFF; pointer-events: none; }

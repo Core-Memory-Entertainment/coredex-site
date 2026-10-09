@@ -23,6 +23,10 @@
   function reload() { location.reload(); }
 
   var pages = {
+    framed: function () {
+      gate('<h1>Coredex opens in its own tab.</h1><p>It does not open inside another page.</p>' +
+        '<a class="btn primary" href="' + esc(location.href) + '" target="_blank" rel="noopener noreferrer">Open Coredex</a>');
+    },
     notSetUp: function () {
       gate('<h1>Coredex is not set up yet.</h1><p>It names no project to connect to. The setup guide says what goes there.</p>');
     },
@@ -121,7 +125,15 @@
     });
   }
 
+  /* Inside another site's frame, a page could lay itself over Coredex's buttons, so Coredex starts only in its own
+     tab. A frame from Coredex's own address is its own. */
+  function framed() {
+    if (window.top === window.self) return false;
+    try { return window.top.location.origin !== location.origin; } catch (e) { return true; }
+  }
+
   async function start() {
+    if (framed()) return pages.framed();
     var cfg = await loadConfig();
     if (!cfg) return pages.notSetUp();
     if (!window.supabase || typeof window.supabase.createClient !== 'function') return pages.libraryMissing();
