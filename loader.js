@@ -42,8 +42,8 @@
       btn.addEventListener('click', function () {
         btn.disabled = true;
         Promise.resolve(start()).then(function (r) {
-          if (r && r.error) { err.textContent = 'Google sign-in did not start: ' + r.error.message; err.hidden = false; btn.disabled = false; }
-        }, function (e) { err.textContent = 'Google sign-in did not start: ' + ((e && e.message) || e); err.hidden = false; btn.disabled = false; });
+          if (r && r.error) { err.textContent = 'Signing in did not work: ' + r.error.message; err.hidden = false; btn.disabled = false; }
+        }, function (e) { err.textContent = 'Signing in did not work: ' + ((e && e.message) || e); err.hidden = false; btn.disabled = false; });
       });
     },
     noAccess: function (email, signOut) {
@@ -137,9 +137,13 @@
     var cfg = await loadConfig();
     if (!cfg) return pages.notSetUp();
     if (!window.supabase || typeof window.supabase.createClient !== 'function') return pages.libraryMissing();
-    var sb = window.supabase.createClient(cfg.supabaseUrl, cfg.publishableKey, {
-      auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
-    });
+    /* A program that shows Coredex and keeps its sign-in offers it here: the client keeps the sign-in with the program,
+       and signing in goes through the program, since Google often refuses to sign in inside one. */
+    var host = window.coredexHost;
+    if (!host || !host.storage || typeof host.signIn !== 'function') host = null;
+    var auth = { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: !host };
+    if (host) auth.storage = host.storage;
+    var sb = window.supabase.createClient(cfg.supabaseUrl, cfg.publishableKey, { auth: auth });
 
     var session = null;
     try {
@@ -151,14 +155,16 @@
     }
     if (!session) {
       return pages.signIn(function () {
+        if (host) return host.signIn();
         return sb.auth.signInWithOAuth({
           provider: 'google',
           options: { redirectTo: location.origin + location.pathname, queryParams: { prompt: 'select_account' } }
         });
       });
     }
+    /* Signing out ends this browser's sign-in (or the program's), and leaves the person's others signed in. */
     async function signOut() {
-      await sb.auth.signOut();
+      await sb.auth.signOut({ scope: 'local' });
       history.replaceState(null, '', location.pathname);
       location.reload();
     }
