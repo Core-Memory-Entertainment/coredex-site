@@ -125,6 +125,72 @@
     });
   }
 
+  /* A shared page's link, #v=<code>, opens as a visitor: a sign-in without an account, kept apart from a person's own,
+     asks the database what the code opens, and runs what comes back for a valid code only. Nothing here says what that
+     is. */
+  function linkCode() {
+    var m = /^#v=([A-Za-z0-9-]{12,20})$/.exec(location.hash || '');
+    return m ? m[1] : null;
+  }
+  var linkPages = {
+    off: function () { gate('<h1>This link has been turned off.</h1><p>Ask whoever sent it for a new one.</p>'); },
+    none: function () { gate('<h1>This link opens nothing.</h1><p>Check that it was copied whole, or ask whoever sent it for a new one.</p>'); },
+    tries: function () { gate('<h1>Too many tries.</h1><p>This browser tried too many links that open nothing. Try again in an hour.</p>'); },
+    busy: function () { gate('<h1>Too many visitors right now.</h1><p>Too many people opened links from this connection in the last hour. Try again later.</p>'); }
+  };
+  window.CXLinkPages = linkPages;
+  function filesFor(data) {
+    var files = (data && Array.isArray(data.files) ? data.files : []).map(function (f) {
+      return { path: f.path, kind: /\.css$/.test(f.path) ? 'style' : 'script', content: f.content };
+    });
+    if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return Promise.resolve(files);
+    /* on a computer working on Coredex itself, the same files come from its own folder, as the app's do */
+    return Promise.all(files.map(function (f) {
+      return fetch('../app/' + f.path, { cache: 'no-store' }).then(function (r) {
+        if (!r.ok) throw new Error(f.path + ' did not load');
+        return r.text();
+      }).then(function (text) { return { path: f.path, kind: f.kind, content: text }; });
+    })).catch(function () { return files; });
+  }
+  async function visit(cfg, code) {
+    var sb = window.supabase.createClient(cfg.supabaseUrl, cfg.publishableKey, {
+      auth: { storageKey: 'coredex-visit', persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+    });
+    async function guest(fresh) {
+      if (!fresh) {
+        var s = await sb.auth.getSession();
+        if (!s.error && s.data && s.data.session) return;
+      }
+      try { await sb.auth.signOut({ scope: 'local' }); } catch (e) { /* gone already */ }
+      var a = await sb.auth.signInAnonymously();
+      if (a.error) throw a.error;
+    }
+    /* a sign-in cleared out since, or run out, gets a new one, once */
+    async function open(fresh) {
+      await guest(fresh);
+      var r = await sb.rpc('shared_open', { p_code: code });
+      if (r.error && !fresh && !isNetwork(r.error)) return open(true);
+      if (r.error) throw r.error;
+      return r.data;
+    }
+    var data;
+    try {
+      data = await open(false);
+    } catch (e) {
+      if (e && (e.status === 429 || /rate limit/i.test(String(e.message || '')))) return linkPages.busy();
+      return isNetwork(e) ? pages.unreachable() : pages.failed(e.message || String(e));
+    }
+    if (!data || data.refused) {
+      var why = data && data.refused;
+      return why === 'off' ? linkPages.off() : why === 'too-many-tries' ? linkPages.tries() : linkPages.none();
+    }
+    var files = await filesFor(data);
+    if (!files.length) return pages.failed('This page cannot open yet.');
+    await run({ files: files });
+    if (!window.CXVisit || typeof window.CXVisit.start !== 'function') return pages.failed('The page did not start.');
+    return window.CXVisit.start({ sb: sb, code: code, data: data, pages: linkPages, gate: gate });
+  }
+
   /* Inside another site's frame, a page could lay itself over Coredex's buttons, so Coredex starts only in its own
      tab. A frame from Coredex's own address is its own. */
   function framed() {
@@ -137,6 +203,8 @@
     var cfg = await loadConfig();
     if (!cfg) return pages.notSetUp();
     if (!window.supabase || typeof window.supabase.createClient !== 'function') return pages.libraryMissing();
+    var shared = linkCode();
+    if (shared) return visit(cfg, shared);
     /* A program that shows Coredex and keeps its sign-in offers it here: the client keeps the sign-in with the program,
        and signing in goes through the program, since Google often refuses to sign in inside one. */
     var host = window.coredexHost;
